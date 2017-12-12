@@ -49,7 +49,7 @@
 
         void main(void) {
             highp vec4 texelColor;
-            
+
             texelColor.rgb = ( clamp( vObjNormal.xyz * 2.0, vec3(-1.0), vec3(1.0)) + 1.0 ); //( clamp( vObjNormal.xyz * 2.0, vec3(-1.0), vec3(1.0)) + 1.0 ) * 0.5;
             texelColor.a = 1.0;
                         
@@ -67,29 +67,41 @@
         uniform highp mat4 uPMatrix;
         uniform sampler2D uPosTex;
 
+        uniform highp float uCubeSize;       // 64.0
+        uniform highp float uLayersPerRow;   // 8
+        uniform highp float uImageSize;      // 512
+
         varying highp vec3 vObjNormal;
+
+        vec2 uvFromCube(highp vec3 cubePos )
+        {
+            return vec2( mod( cubePos.x, uCubeSize ), mod( cubePos.y, uCubeSize ) ) + vec2(mod(cubePos.z, uLayersPerRow), floor(cubePos.z / uLayersPerRow) ) * uCubeSize;
+        }
 
         void main(void) {
 
             highp vec3 cubePos = aVertexPosition + vec3(0.5, 0.5, 0.5 );
             cubePos.xyz = floor( cubePos.xyz / 2.0 );
 
-            highp vec2 texUV = vec2( mod( cubePos.x, 64.0 ), mod( cubePos.y, 64.0 ) ) + vec2(mod(cubePos.z, 8.0), floor(cubePos.z / 8.0) ) * 64.0;
-            texUV = texUV / 512.0;
+            highp vec3 offset = aVertexPosition - cubePos * 2.0;      
+            
+            highp vec2 texUV = uvFromCube(cubePos + vec3(0.0, offset.y, 0.0));
+
+            texUV = texUV / uImageSize;
             highp vec4 pos = texture2D(uPosTex, texUV ).rgba;
             
-            highp vec3 offset = aVertexPosition - cubePos * 2.0;
+            
             
             highp vec2 rotPos = normalize( vec2( pos.x, pos.z ) );
             
             // rotate around y axis based on xz position
-            highp mat4 yRot;
+            /*highp mat4 yRot;
             yRot[0] = vec4(rotPos.x, 0.0, rotPos.y, 0.0);
             yRot[1] = vec4(0.0, 1.0, 0.0, 0.0 );
             yRot[2] = vec4(-rotPos.y, 0.0, rotPos.x, 0.0 );
             yRot[3] = vec4( 0.0, 0.0, 0.0, 1.0 );
             
-            offset = ( yRot * vec4(offset, 1.0) ).xyz;
+            offset = ( yRot * vec4(offset, 1.0) ).xyz; */
             
             pos.xyz = offset + pos.xyz;
             
@@ -232,14 +244,14 @@
 
             highp vec2 scrVel = vec2(0.0, 0.0);
 
-            //if( scrPos.x > 1.0 || scrPos.x < 0.0 || scrPos.y > 1.0 || scrPos.y < 0.0 )
-            //{
-            //    vel.xy = -vel.xy;
-            //}
+            if( scrPos.x > 1.0 || scrPos.x < 0.0 || scrPos.y > 1.0 || scrPos.y < 0.0 )
+            {
+                vel.xy = -vel.xy;
+            }
 
             if( sqDist < sqRad )
             {
-                scrVel.xy = -(off * (sqRad - sqDist) / sqRad) * 1500.0  * uDeltaTime;
+                scrVel.xy = -(off * (sqRad - sqDist) / sqRad) * 3000.0  * uDeltaTime;
             }
 
             highp vec4 wVel = (uInvMVPMatrix * vec4(scrVel.xy, 0.0, 0.0));
@@ -304,26 +316,30 @@
     <script id="initdata-fs" type="x-shader/x-fragment">
         varying highp vec2 vTextureCoord;
 
+        uniform highp float uCubeSize;       // 64.0
+        uniform highp float uLayersPerRow;   // 8
+        uniform highp float uImageSize;      // 512
+
         highp float rand(highp vec2 co){
             return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
         }
 
         void main(void) {
-            highp float spacing = 1.0/8.0;
+            highp float spacing = 1.0/uLayersPerRow;
             
             highp vec3 cubePos;        
-            cubePos.x = mod( vTextureCoord.x, spacing ) * 8.0;
-            cubePos.y = mod( vTextureCoord.y, spacing ) * 8.0;
-            cubePos.z = floor( vTextureCoord.x * 8.0 ) + floor( vTextureCoord.y * 8.0 ) * 8.0;  
+            cubePos.x = mod( vTextureCoord.x, spacing ) * uLayersPerRow;
+            cubePos.y = mod( vTextureCoord.y, spacing ) * uLayersPerRow;
+            cubePos.z = floor( vTextureCoord.x * uLayersPerRow ) + floor( vTextureCoord.y * uLayersPerRow ) * uLayersPerRow;  
             
-            cubePos.xy *= 64.0;
+            cubePos.xy *= uCubeSize;
             
             cubePos.xyz = floor(cubePos.xyz);
             
-            cubePos.xyz -= vec3(64.0*0.5);
+            cubePos.xyz -= vec3(uCubeSize*0.5);
             
 
-            highp vec4 col = vec4( cubePos * 8.0, 1.0 );
+            highp vec4 col = vec4( cubePos * 4.0, 1.0 );
             gl_FragColor = col;
         }
     </script>

@@ -5,17 +5,17 @@ class PullCube {
     // 512x512 = 64x64x64 = 262,114 voxels
     static get RT_TEX_SIZE()
     {
-        return 512;
+        return 64;
     }
 
-    static get SCULPT_SIZE()
+    static get CUBE_SIZE()
     {
-        return 64;
+        return 16;
     }
 
     static get SCULPT_LAYERS()
     {
-        return 8;
+        return 4;
     }
 
     constructor()
@@ -68,7 +68,7 @@ class PullCube {
         //maxium particles that can be represented in the textures
         var maxparticleCount = PullCube.RT_TEX_SIZE * PullCube.RT_TEX_SIZE;
 
-        this._cubeBatch = new BatchedCubes(maxparticleCount, PullCube.SCULPT_SIZE);
+        this._cubeBatch = new BatchedCubes(maxparticleCount, PullCube.CUBE_SIZE);
     }
 
     //
@@ -176,9 +176,9 @@ class PullCube {
         var initPosFS = Material.getShader(gl, "initdata-fs");
         var initDataMaterial = new Material( quadVS, initPosFS );
         initDataMaterial.addVertexAttribute("aVertexPosition");
-        initDataMaterial.setFloat("cubeSize", PullCube.SCULPT_SIZE);
-        initDataMaterial.setFloat("layersPerRow", PullCube.SCULPT_LAYERS);
-        initDataMaterial.setFloat("imageSize", PullCube.RT_TEX_SIZE);
+        initDataMaterial.setFloat("uCubeSize", PullCube.CUBE_SIZE);
+        initDataMaterial.setFloat("uLayersPerRow", PullCube.SCULPT_LAYERS);
+        initDataMaterial.setFloat("uImageSize", PullCube.RT_TEX_SIZE);
         
         gl.viewport(0, 0, PullCube.RT_TEX_SIZE, PullCube.RT_TEX_SIZE);
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -206,13 +206,13 @@ class PullCube {
         this._voxelMaterials[0] = new Material( basicVS, voxelFS );
         this._voxelMaterials[1] = new Material( basicVS, wireframeFS );
         
-        mat4.perspective(this._pMatrix, 45, canvas.width/canvas.height, 0.1, 1400.0);
+        mat4.perspective(this._pMatrix, 45, canvas.width/canvas.height, 1.0, 500.0);
         
         this._cameraRotation = quat.create();
-        this._cameraPosition = vec3.fromValues(0, 0, -800 );
+        this._cameraPosition = vec3.fromValues(0, 0, -150 );
         this._cameraUp = vec3.fromValues(0.0, 1.0, 0.0 );
 
-        this._modelRotation = quat.create();
+        this._modelRotation = quat.fromValues(-0.876, 0.151, 0.266, 0.373);
         this._modelPosition = vec3.fromValues(0.0, 0.0, 0.0);
         
         
@@ -227,6 +227,9 @@ class PullCube {
             this._voxelMaterials[i].setMatrix("uPMatrix", new Float32Array( this._pMatrix ) );
             this._voxelMaterials[i].setMatrix("uVMatrix", new Float32Array( this._vMatrix ) );
             this._voxelMaterials[i].setMatrix("uMMatrix", new Float32Array(this._mMatrix));
+            this._voxelMaterials[i].setFloat("uCubeSize", PullCube.CUBE_SIZE);
+            this._voxelMaterials[i].setFloat("uLayersPerRow", PullCube.SCULPT_LAYERS);
+            this._voxelMaterials[i].setFloat("uImageSize", PullCube.RT_TEX_SIZE);
         }
 
         this._velMaterial.setMatrix("uPMatrix", new Float32Array( this._pMatrix ) );
@@ -394,7 +397,7 @@ class PullCube {
 
     handleResize()
     {
-        mat4.perspective(this._pMatrix, 45, canvas.width/canvas.height, 0.1, 1400.0);
+        mat4.perspective(this._pMatrix, 45, canvas.width/canvas.height, 1, 500.0);
     
         for( var i=0; i < this._voxelMaterials.length; i++ )
         {
@@ -415,9 +418,9 @@ class PullCube {
 
         currentZ += delta;
 
-        if( currentZ < -900 )
+        if( currentZ < -250 )
         {
-            currentZ = -900;
+            currentZ = -250;
         }
         else if ( currentZ > -10 )
         {
