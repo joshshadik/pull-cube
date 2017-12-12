@@ -32,6 +32,8 @@ class PullCube {
         this._rtPosBuffer = null;
         this._rtVelBuffer = null;
 
+        this._desiredPosBuffer = null;
+
         this._screenBuffer = null;
 
         this._copyMaterial;      // material to copy texture
@@ -122,6 +124,11 @@ class PullCube {
             PullCube.RT_TEX_SIZE, PullCube.RT_TEX_SIZE
         );
 
+        this._desiredPosBuffer = new Framebuffer(
+            new Texture(PullCube.RT_TEX_SIZE, PullCube.RT_TEX_SIZE, internalFormat, gl.RGBA, texelData ), null,
+            PullCube.RT_TEX_SIZE, PullCube.RT_TEX_SIZE
+        );
+
         // setup framebuffer as intermediate - to copy content
         this._rtCopyBuffer = new Framebuffer(
             new Texture(PullCube.RT_TEX_SIZE, PullCube.RT_TEX_SIZE, internalFormat, gl.RGBA, texelData ), null,
@@ -151,8 +158,8 @@ class PullCube {
         this._velMaterial.setFloat("uRadius", 0.1 );
         this._velMaterial.setVec2("uCanvasSize", new Float32Array([canvas.width, canvas.height]));
         this._velMaterial.setFloat("uAspect", canvas.height / canvas.width);   
-
-
+        this._velMaterial.setFloat("uImageSize", PullCube.RT_TEX_SIZE);
+        this._velMaterial.setTexture("uDesiredPosTex", this._desiredPosBuffer.color().native());
 
         this._posMaterial = new Material(quadVS, posFS);
         this._posMaterial.setTexture("uPosTex", this._rtPosBuffer.color().native());
@@ -184,6 +191,8 @@ class PullCube {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         
         this.renderDataBuffer( this._rtPosBuffer.fbo(), initDataMaterial );
+
+        this.blit(this._rtPosBuffer.color().native(), this._desiredPosBuffer.fbo(), PullCube.RT_TEX_SIZE, PullCube.RT_TEX_SIZE);
         
         gl.bindFramebuffer( gl.FRAMEBUFFER, null ); 
         gl.viewport(0, 0, canvas.width, canvas.height);

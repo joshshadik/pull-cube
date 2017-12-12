@@ -85,7 +85,7 @@
 
             highp vec3 offset = aVertexPosition - cubePos * 2.0;      
             
-            highp vec2 texUV = uvFromCube(cubePos + vec3(0.0, offset.y, 0.0));
+            highp vec2 texUV = uvFromCube(cubePos); // + vec3(0.0, offset.y, 0.0));
 
             texUV = texUV / uImageSize;
             highp vec4 pos = texture2D(uPosTex, texUV ).rgba;
@@ -107,7 +107,7 @@
             
             gl_Position = uPMatrix * uVMatrix * uMMatrix * vec4(pos.xyz, 1.0);
 
-            highp vec3 objNormal = normalize(aVertexPosition - cubePos * 3.0);
+            highp vec3 objNormal = normalize((cubePos - uCubeSize));
 
             vObjNormal = objNormal;
         }
@@ -207,6 +207,7 @@
 
         uniform sampler2D uVelTex;
         uniform sampler2D uPosTex;
+        uniform sampler2D uDesiredPosTex;
 
         uniform highp mat4 uMMatrix;
         uniform highp mat4 uVMatrix;
@@ -218,6 +219,8 @@
         uniform highp float uRandomness;
         uniform highp float uTime;
         uniform highp float uGravityScale;
+
+        uniform highp float uImageSize;
 
         uniform highp float uAspect;
 
@@ -232,6 +235,8 @@
             highp vec4 pos = texture2D(uPosTex, vTextureCoord.st);
             highp vec4 vel = texture2D(uVelTex, vTextureCoord.st);
 
+            highp vec4 desPos = texture2D(uDesiredPosTex, vTextureCoord.st);
+
             highp vec4 scrPos = uPMatrix * uVMatrix * uMMatrix * vec4(pos.xyz, 1.0);
 
             scrPos.xyz /= scrPos.w;
@@ -244,22 +249,24 @@
 
             highp vec2 scrVel = vec2(0.0, 0.0);
 
-            if( scrPos.x > 1.0 || scrPos.x < 0.0 || scrPos.y > 1.0 || scrPos.y < 0.0 )
-            {
-                vel.xy = -vel.xy;
-            }
 
-            if( sqDist < sqRad )
             {
-                scrVel.xy = -(off * (sqRad - sqDist) / sqRad) * 3000.0  * uDeltaTime;
+                scrVel.xy = -(off * 5.0 / max(sqDist, 0.0001))  * uDeltaTime;
             }
 
             highp vec4 wVel = (uInvMVPMatrix * vec4(scrVel.xy, 0.0, 0.0));
 
             vel.xyz += wVel.xyz;
 
-            vel.xyz = vel.xyz - vel.xyz * uDeltaTime * 0.3;
+            highp vec3 adjOff =  desPos.xyz - pos.xyz;
+            highp float adjDist =  length(adjOff);
 
+            adjDist = adjDist*adjDist * 0.05;
+            vel.xyz += adjOff * adjDist * uDeltaTime;
+
+            
+            vel.xyz = vel.xyz - vel.xyz * uDeltaTime * 0.3;
+            
             //vel.xy += scrPos.xy;
 
             gl_FragColor = vel;
