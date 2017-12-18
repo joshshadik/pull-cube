@@ -352,25 +352,11 @@
     </script>
 </head>
 
-<body onload="start()" style="margin: 0px;">
+<body onload="start()" style="margin: 0px;touch-action:none;overflow:hidden;">
     <div class="container">
         <canvas id="glcanvas" width="1200" height="480" style="width:100%;height:100%;">
             Your browser doesn't appear to support the <code>&lt;canvas&gt;</code> element.
         </canvas>
-        <!-- <div id="overlay">
-            <div>Cube Count: <span id="cubeCount"></span></div>
-            <div><input type="range" id="cubeSlider" value="100" ></div>
-            
-            <div>Randomness: <span id="randomness"></span></div>
-            <div><input type="range" id="randomSlider" value="0" ></div>
-            
-            <div>Gravity: <span id="gravity"></span></div>
-            <div><input type="range" id="gravitySlider" value="0" min="0" max="50"></div>
-            
-            <div>Time Scale: <span id="timeScale"></span></div>
-            <div><input type="range" id="timeSlider" value="100" min="20" max="100"></div>
-            <div><button id="shaderButton">Change Shader</button></div>
-        </div> -->
     </div>
 
 </body>
