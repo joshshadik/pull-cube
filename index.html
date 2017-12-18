@@ -305,6 +305,16 @@
 
         void main(void) {
             highp vec4 col = texture2D(uScrTex, vTextureCoord.st);
+
+            highp vec2 centerOffset = vec2(0.5) - vTextureCoord.xy;
+            highp float off = dot(centerOffset, centerOffset);
+            off = 1.0 - off;
+            off = off * off;
+            off = off * 2.0;
+            highp float vignette = off;
+
+            col *= vignette;
+
             gl_FragColor = col;
         }
     </script>

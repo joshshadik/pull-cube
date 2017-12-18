@@ -73,6 +73,45 @@ class PullCube {
         this._cubeBatch = new BatchedCubes(maxparticleCount, PullCube.CUBE_SIZE);
     }
 
+
+    getFloat32Format()
+    {
+        var texelData = gl.FLOAT;
+        var internalFormat = gl.RGBA;
+    
+        // need either floating point, or half floating point precision for holding position and velocity data
+        if( _supportsWebGL2 )
+        {
+            var ext = gl.getExtension("EXT_color_buffer_float");
+            if( ext == null )
+            {
+                alert("Device & browser needs to support floating point or half floating point textures in order to work properly");
+            }
+            else
+            {
+                internalFormat = gl.RGBA32F;
+            }
+        }
+        else
+        {
+            var ext = gl.getExtension("OES_texture_float");
+            if( ext == null )
+            {
+                ext = gl.getExtension("OES_texture_half_float");
+                if( ext != null )
+                {
+                    texelData = ext.HALF_FLOAT_OES;
+                }
+                else
+                {
+                    alert("Device & browser needs to support floating point or half floating point textures in order to work properly");
+                }
+            }
+        }
+
+        return {"texelData" : texelData, "internalFormat": internalFormat};
+    }
+
     //
     // initParticleData
     //
@@ -80,8 +119,10 @@ class PullCube {
     //
     initParticleData() 
     {
-        var texelData = gl.FLOAT;
-        var internalFormat = gl.RGBA;
+        var formats = this.getFloat32Format();
+
+        var texelData = formats["texelData"];
+        var internalFormat = formats["internalFormat"];
     
         // need either floating point, or half floating point precision for holding position and velocity data
         if( _supportsWebGL2 )
@@ -391,7 +432,7 @@ class PullCube {
 
         this._screenBuffer.bind();
 
-        gl.clearColor( 1.0, 1.0, 1.0, 0.0 );
+        gl.clearColor( 0.5, 0.5, 0.5, 0.0 );
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
         this._voxelMaterials[this._voxelMaterialIndex].apply();
