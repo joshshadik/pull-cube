@@ -253,8 +253,10 @@ class PullCube {
         var voxelFS = Material.getShader(gl, "cornercolor-fs" );
         var wireframeFS = Material.getShader(gl, "cubeframe-fs");
 
-        this._voxelMaterials[0] = new Material( basicVS, voxelFS );
-        this._voxelMaterials[1] = new Material( basicVS, wireframeFS );
+        this._voxelMaterials[1] = new Material( basicVS, voxelFS );
+        this._voxelMaterials[0] = new Material( basicVS, wireframeFS );
+
+        this._voxelMaterials[0].setCull(2);
         
         mat4.perspective(this._pMatrix, 45, canvas.width/canvas.height, 1.0, 500.0);
         

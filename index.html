@@ -94,20 +94,12 @@
             
             highp vec2 rotPos = normalize( vec2( pos.x, pos.z ) );
             
-            // rotate around y axis based on xz position
-            /*highp mat4 yRot;
-            yRot[0] = vec4(rotPos.x, 0.0, rotPos.y, 0.0);
-            yRot[1] = vec4(0.0, 1.0, 0.0, 0.0 );
-            yRot[2] = vec4(-rotPos.y, 0.0, rotPos.x, 0.0 );
-            yRot[3] = vec4( 0.0, 0.0, 0.0, 1.0 );
-            
-            offset = ( yRot * vec4(offset, 1.0) ).xyz; */
             
             pos.xyz = offset + pos.xyz;
             
             gl_Position = uPMatrix * uVMatrix * uMMatrix * vec4(pos.xyz, 1.0);
 
-            highp vec3 objNormal = normalize((cubePos - uCubeSize));
+            highp vec3 objNormal = normalize(offset);
 
             vObjNormal = objNormal;
         }

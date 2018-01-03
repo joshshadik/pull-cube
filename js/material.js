@@ -1,4 +1,11 @@
 "use strict";
+
+var FaceCullModeEnum = {
+    FRONT: 0,
+    BACK: 1,
+    BOTH: 2
+};
+
 class Material {
     constructor(vertexShader, fragmentShader) 
     {     
@@ -21,6 +28,9 @@ class Material {
         this.matrixAttributes = [];
         this.vec3Attributes = [];
         this.vec2Attributes = [];
+
+
+        this._cullMode = FaceCullModeEnum.FRONT;
     }
     
     
@@ -76,10 +86,31 @@ class Material {
     {
         return this.vertexAttributes[attName];
     }
+
+    setCull( value)
+    {
+        this._cullMode = value;
+    }
     
     
     apply() 
     {
+        gl.enable(gl.CULL_FACE);
+        switch(this._cullMode )
+        {
+            case FaceCullModeEnum.FRONT:
+            gl.cullFace(gl.FRONT)
+            break;
+
+            case FaceCullModeEnum.BACK:
+            gl.cullFace(gl.BACK)
+            break;
+
+            case FaceCullModeEnum.BOTH:
+            gl.cullFace(gl.FRONT_AND_BACK)
+            break;
+        }
+
         gl.useProgram(this.shaderProgram);
   
         var texCount = 0;
@@ -118,6 +149,7 @@ class Material {
             gl.enableVertexAttribArray( this.vertexAttributes[attName] );
         }
 
+        gl.disable(gl.CULL_FACE);
     }
 
     //
